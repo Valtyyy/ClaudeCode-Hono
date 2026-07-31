@@ -10,12 +10,13 @@
 
 All environment variables are accessed via `process.env`. Required variables:
 
-| Variable       | Used by              | Required |
-|---------------|----------------------|----------|
-| `DATABASE_URL` | Prisma               | Yes      |
-| `JWT_SECRET`   | `hono/jwt`           | Yes      |
-| `PORT`         | `src/index.ts`       | No (default 3000) |
-| `CORS_ORIGIN`  | CORS middleware      | No (default `*`) |
-| `NODE_ENV`     | Prisma log config    | No       |
+| Variable             | Used by               | Required |
+|----------------------|------------------------|----------|
+| `DATABASE_URL`       | Prisma                | Yes      |
+| `BETTER_AUTH_SECRET`  | `src/lib/auth.ts`     | Yes      |
+| `BETTER_AUTH_URL`     | `src/lib/auth.ts`     | Yes      |
+| `PORT`               | `src/index.ts`         | No (default 3000) |
+| `CORS_ORIGIN`        | CORS middleware        | No (default `*`) |
+| `NODE_ENV`           | Prisma log config       | No       |
 
-Never hardcode secrets. Never commit `.env`. The test setup sets `JWT_SECRET=test-secret` in `src/tests/setup.ts` — do not rely on a `.env` file in tests.
+Never hardcode secrets. Never commit `.env`. The test setup sets `BETTER_AUTH_SECRET=test-secret` and `BETTER_AUTH_URL=http://localhost:3000` in `src/tests/setup.ts` — do not rely on a `.env` file in tests.

@@ -15,7 +15,7 @@ Every file in `src/middleware/` and `src/routes/` must have a corresponding test
 
 Middleware is tested by mounting it on a **throwaway `new Hono()` app** created inside the test file. The actual route files are never imported in middleware tests.
 
-For `authMiddleware`: test missing header, wrong scheme, invalid token, wrong secret, user not found in DB, and valid token.
+For `authMiddleware`: test missing/absent session (`auth.api.getSession` mock resolves `null`) and a valid session (`auth.api.getSession` mock resolves `{ user, session }`).
 
 For `requireRoles`: inject the user directly into `c.var` via a preceding inline middleware — do not involve `authMiddleware`. Test: matching role, one of multiple roles, `admin` bypass, no matching role, wrong role.
 
@@ -44,17 +44,25 @@ Prisma is mocked in `src/tests/setup.ts` via `vi.mock('../lib/prisma', ...)`. Ev
 
 Call `vi.clearAllMocks()` in `beforeEach` in every test file. Never let mock state leak between tests.
 
-When a route handler calls `prisma.user.findUnique` (because `authMiddleware` runs), always set up that mock before firing the request — even in route tests that are not about auth.
+## Better Auth Mock
 
-## Token Generation in Tests
+Better Auth is mocked in `src/tests/setup.ts` via `vi.mock('../lib/auth', ...)`, with `auth.api.getSession` declared as a `vi.fn()`. Route and middleware tests never hit a real Better Auth instance or a real database through the Prisma adapter — they only control what `getSession` resolves to.
 
-Use `sign({ sub: userId }, 'test-secret')` from `hono/jwt`. The secret `test-secret` is set via `process.env.JWT_SECRET = 'test-secret'` in `setup.ts`.
+When a route handler is protected by `authMiddleware`, always set `auth.api.getSession` to resolve the desired session (or `null`) before firing the request — even in route tests that are not about auth.
+
+## Session Generation in Tests
+
+Do not sign or construct a real Better Auth session token. Use `makeSession(user)` (see below) to build the `{ user, session }` shape Better Auth returns, and set it as the resolved value of the mocked `auth.api.getSession`:
+
+```typescript
+vi.mocked(auth.api.getSession).mockResolvedValueOnce(makeSession(makeAdminUser()))
+```
 
 ## Test Helpers
 
 `src/tests/helpers.ts` must export at minimum:
-- `makeToken(userId)` — returns a signed JWT
-- `makeUser(overrides?)` — base user object
+- `makeSession(user)` — returns the `{ user, session }` shape returned by `auth.api.getSession`
+- `makeUser(overrides?)` — base user object, including the Better Auth `role` field
 - `makeBotUser()`, `makeAdminUser()`, `makeNoRoleUser()` — pre-configured users
 
 Add helpers to this file whenever a new user shape or fixture is needed across multiple test files. Never duplicate fixture definitions across test files.

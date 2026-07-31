@@ -6,7 +6,7 @@ All API routes in this project use `@hono/zod-openapi`. The rules below are non-
 
 ## Hard Constraints
 
-- **Every Hono route MUST use `createRoute()` from `@hono/zod-openapi` and be registered via `app.openapi()`. Direct `app.get()` / `app.post()` for API routes is forbidden.**
+- **Every Hono route MUST use `createRoute()` from `@hono/zod-openapi` and be registered via `app.openapi()`. Direct `app.get()` / `app.post()` for API routes is forbidden**, except the single Better Auth catch-all (`app.on(['POST', 'GET'], '/api/auth/*', ...)`) described in `auth.md` — never add another one.
 - **Splitting a resource into multiple files is forbidden unless a schema is explicitly imported by another resource.**
 - **Every `.openapi()` call must be preceded by a `// [METHOD] /path` comment.**
 - **Handlers are inline anonymous functions inside `.openapi()` — never extracted into named functions.**
